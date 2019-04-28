@@ -1,25 +1,121 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+title: 'Reproducible Research: Peer Assessment 1'
+author: "Borja Perez"
+date: "27 of April, 2019"
+output: html_document
+keep_md: true
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
 
 ## Loading and preprocessing the data
 
+The following code is for loading the data, available in the activity.csv file:
 
+```{r cars, echo = FALSE}
+data <- read.csv(file="activity.csv", header=TRUE, sep=",")
+```
 
 ## What is mean total number of steps taken per day?
+The total steps taken per day is calculated with the following code. It also outputs a histogram of this measurement:
 
+```{r }
+days <- names(split(data, data$date))
+res <- sapply(days, function(x){sum(data[data$date == x, 1])})
+plot(as.Date(days), res, main="Histogram of steps/day", 
+     xlab="Date (October to November 2012)",  type="h", lwd=6, col="red")
+res
 
+```
 
 ## What is the average daily activity pattern?
+The following code makes a time series plot (i.e. \color{red}{\verb|type = "l"|}type="l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis).
 
+For it, firstly calculates the mean of every interval during each day ignoring NAs
+```{r}
+intervalSplit <- split(data$steps, data$interval)
+averageStepsPerInterval <- sapply(intervalSplit, mean, na.rm=TRUE)
+```
+And then plots the time series graph
+```{r}
+plot(unique(data$interval), averageStepsPerInterval, type="l",
+      main="Average num steps per interval across all days", 
+      xlab="Interval", ylab="Average number of steps", 
+      lwd=3, col="red")
+abline(v = data[which.max(averageStepsPerInterval),3])
+```
+Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+The interval will be:
+```{r}
+data[which.max(averageStepsPerInterval),3]
 
-
+```
 ## Imputing missing values
 
+Note that there are a number of days/intervals where there are missing values (coded as \color{red}{\verb|NA|}NA). The presence of missing days may introduce bias into some calculations or summaries of the data.
+Calculate and report the total number of missing values in the dataset:
+```{r}
+sum(is.na(data$steps))
+```
+Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc. 
+In this step, I will replace all the NA`s with the Mean value of that interval, and we will create a new dataset that is equal to the original dataset but with the missing data filled in.
 
 
+```{r}
+segment <- data[is.na(data$steps),] 
+for(i in 1:dim(segment)[1]){
+     for(j in 1:length(averageStepsPerInterval)){
+         if(as.character(segment$interval[i]) == names(averageStepsPerInterval[j])){
+             segment$steps[i] <- averageStepsPerInterval[j]
+          }
+    }
+}
+dataWithoutNAs <- data
+dataWithoutNAs[rownames(segment),1] <- segment$steps
+```
+Create a histogram comparing the previous and the new one:
+```{r }
+par(mfrow=c(1,2))
+plot(as.Date(days), res, main="Histogram of steps/day", 
+     xlab="Date (October to November 2012)",  type="h", lwd=6, col="red")
+res2 <- sapply(days, function(x){sum(dataWithoutNAs[dataWithoutNAs$date == x, 1])})
+
+plot(as.Date(days), res2, main="Histogram of steps/day", 
+     xlab="Date (October to November 2012)",  type="h", lwd=6, col="blue")
+
+
+```
 ## Are there differences in activity patterns between weekdays and weekends?
+In order to know if there are differences, we will split the dataset in two datasets: first one weeek days, second one weekend days:
+
+```{r }
+date <- strptime(dataWithoutNAs$date, "%Y-%m-%d")
+dataWithoutNAs$weekDay <- date$wday
+filtered <- split(dataWithoutNAs, dataWithoutNAs$weekDay==6 | dataWithoutNAs == 7)
+weekDays <- filtered[[1]]
+weekend <- filtered[[2]]
+```
+With this, we will look for differences for both dataframes. We will make a panel plot containing a time series plot (i.e. \color{red}{\verb|type = "l"|}type="l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
+
+```{r }
+
+intervalSplitWeekdays <- split(weekDays$steps, weekDays$interval)
+averageStepsPerIntervalWeekdays <- sapply(intervalSplitWeekdays, mean, na.rm=TRUE)
+
+intervalSplitWeekends <- split(weekend$steps, weekend$interval)
+averageStepsPerIntervalWeekend <- sapply(intervalSplitWeekends, mean, na.rm=TRUE)
+
+par(mfrow=c(1,2))
+plot(unique(weekDays$interval), averageStepsPerIntervalWeekdays, type="l",
+      main="Average steps per interval during week days/weekends", 
+      xlab="Interval", ylab="Average number of steps weekdays", 
+      lwd=2, col="red", ylim = c(0, 250))
+
+plot(unique(weekend$interval), averageStepsPerIntervalWeekend, type="l",
+      xlab="Interval", ylab="Average number of steps weekends", 
+      lwd=2, col="blue", ylim = c(0, 250))
+
+```
+
