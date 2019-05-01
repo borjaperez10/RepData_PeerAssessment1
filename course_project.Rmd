@@ -23,13 +23,10 @@ The total steps taken per day is calculated with the following code. It also out
 
 ```{r }
 days <- names(split(data, data$date))
-png(filename="figure1_Historam_steps_per_day.png")
 res <- sapply(days, function(x){sum(data[data$date == x, 1])})
 plot(as.Date(days), res, main="Histogram of steps/day", 
      xlab="Date (October to November 2012)",  type="h", lwd=6, col="red")
-dev.off()
 res
-
 
 ```
 
@@ -43,14 +40,11 @@ averageStepsPerInterval <- sapply(intervalSplit, mean, na.rm=TRUE)
 ```
 And then plots the time series graph
 ```{r}
-png(filename="figure2_Average_num_steps_per_interval_alldays.png")
 plot(unique(data$interval), averageStepsPerInterval, type="l",
       main="Average num steps per interval across all days", 
       xlab="Interval", ylab="Average number of steps", 
       lwd=3, col="red")
 abline(v = data[which.max(averageStepsPerInterval),3])
-dev.off()
-
 ```
 Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 The interval will be:
@@ -83,7 +77,6 @@ dataWithoutNAs[rownames(segment),1] <- segment$steps
 ```
 Create a histogram comparing the previous and the new one:
 ```{r }
-png(filename="figure3_Histogram_of_steps_day_no_NAs.png")
 par(mfrow=c(1,2))
 plot(as.Date(days), res, main="Histogram of steps/day", 
      xlab="Date (October to November 2012)",  type="h", lwd=6, col="red")
@@ -91,7 +84,7 @@ res2 <- sapply(days, function(x){sum(dataWithoutNAs[dataWithoutNAs$date == x, 1]
 
 plot(as.Date(days), res2, main="Histogram of steps/day", 
      xlab="Date (October to November 2012)",  type="h", lwd=6, col="blue")
-dev.off()
+
 
 ```
 ## Are there differences in activity patterns between weekdays and weekends?
@@ -113,7 +106,7 @@ averageStepsPerIntervalWeekdays <- sapply(intervalSplitWeekdays, mean, na.rm=TRU
 
 intervalSplitWeekends <- split(weekend$steps, weekend$interval)
 averageStepsPerIntervalWeekend <- sapply(intervalSplitWeekends, mean, na.rm=TRUE)
-png(filename="figure4_Average_num_steps_per_interval_weekend_vs_weekdays.png")
+
 par(mfrow=c(1,2))
 plot(unique(weekDays$interval), averageStepsPerIntervalWeekdays, type="l",
       main="Average steps per interval during week days/weekends", 
@@ -123,6 +116,6 @@ plot(unique(weekDays$interval), averageStepsPerIntervalWeekdays, type="l",
 plot(unique(weekend$interval), averageStepsPerIntervalWeekend, type="l",
       xlab="Interval", ylab="Average number of steps weekends", 
       lwd=2, col="blue", ylim = c(0, 250))
-dev.off()
+
 ```
 
